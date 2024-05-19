@@ -39,9 +39,34 @@ impl<READ: Read> StreamingDecoder<READ, FrameDecoder> {
         decoder.init(&mut source)?;
         Ok(StreamingDecoder { decoder, source })
     }
+}
 
-    pub fn inner(self) -> FrameDecoder {
+impl<READ: Read, DEC: BorrowMut<FrameDecoder>> StreamingDecoder<READ, DEC> {
+    /// Destructures this object into the inner [FrameDecoder].
+    pub fn inner(self) -> DEC {
         self.decoder
+    }
+
+    /// Gets a reference to the underlying reader.
+    /// 
+    /// It is inadvisable to directly read from the underlying reader.
+    pub fn get_ref(&self) -> &READ {
+        &self.source
+    }
+
+    /// Gets a mutable reference to the underlying reader.
+    ///
+    /// It is inadvisable to directly read from the underlying reader.
+    pub fn get_mut(&mut self) -> &mut READ {
+        &mut self.source
+    }
+
+    /// Destructures this object into the inner reader and [FrameDecoder].
+    pub fn into_inner_parts(self) -> (READ, DEC)
+    where
+        READ: Sized,
+    {
+        (self.source, self.decoder)
     }
 }
 
